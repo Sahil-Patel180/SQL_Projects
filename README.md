@@ -1,5 +1,7 @@
 # SQL Projects
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
 Welcome to my repository of SQL projects. This collection showcases my skills in database querying, data analysis, and extracting insights from complex datasets.
 
 ## Projects
@@ -20,18 +22,14 @@ This repository contains the following projects:
 ## How to Use
 
 1.  **Clone the repository:**
-    ```sh
+    ```
     git clone [https://github.com/Sahil-Patel180/SQL_Projects.git](https://github.com/Sahil-Patel180/SQL_Projects.git)
     ```
 2.  **Navigate to a project folder:**
-    ```sh
+    ```
     cd SQL_Projects/AdventureWorksDW2022 SQL Queries
     ```
 3.  **Use the Queries:**
     * You will need access to the database that these queries were written for (e.g., the `AdventureWorksDW2022` database).
     * Open the `.sql` files in a database management tool like SQL Server Management Studio (SSMS), Azure Data Studio, or DBeaver.
     * Run the queries to see the analysis.
-
-## License
-
-This project is licensed under the **MIT License**. See the [LICENSE](LICENSE) file for more details.
