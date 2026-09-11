@@ -1,0 +1,7 @@
+*.bak
+*.log
+*.ldf
+*.mdf
+.vs/
+*.suo
+Thumbs.db
