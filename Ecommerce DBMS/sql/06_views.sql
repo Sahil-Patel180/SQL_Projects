@@ -37,9 +37,10 @@ LEFT JOIN dbo.Payments pay ON pay.OrderID = o.OrderID
 LEFT JOIN dbo.Shipments sh ON sh.OrderID = o.OrderID;
 GO
 
--- Example use + expected result: 18 rows, one per order, Pending/Cancelled
--- orders show NULL PaymentMethod/ShipmentStatus since no row exists yet.
-SELECT * FROM dbo.vw_OrderSummary ORDER BY OrderID;
+-- Example use + expected result: at curated-only scale, 18 rows, one per order; at bulk
+-- scale, 100k+ rows — TOP(20) below is preview-only, drop it for the real report. Pending/
+-- Cancelled orders show NULL PaymentMethod/ShipmentStatus since no row exists yet.
+SELECT TOP (20) * FROM dbo.vw_OrderSummary ORDER BY OrderID;
 GO
 
 /* ------------------------------------------------------------

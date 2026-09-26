@@ -37,7 +37,8 @@ WHERE IsActive = 1;
 GO
 
 -- Q6 [INNER JOIN] Orders with the customer who placed them.
-SELECT o.OrderID, c.FirstName + ' ' + c.LastName AS CustomerName,
+-- TOP(20) — preview only, at 100k+ orders; drop it for the real report.
+SELECT TOP (20) o.OrderID, c.FirstName + ' ' + c.LastName AS CustomerName,
        o.OrderDate, o.OrderStatus, o.TotalAmount
 FROM dbo.Orders o
 INNER JOIN dbo.Customers c ON c.CustomerID = o.CustomerID
@@ -54,7 +55,8 @@ ORDER BY UnitsSold DESC;
 GO
 
 -- Q8 [Multi-table / complex JOIN] Full order-line detail: customer, product, category.
-SELECT o.OrderID, c.FirstName + ' ' + c.LastName AS Customer,
+-- TOP(20) — preview only, at ~250k order lines; drop it for the real report.
+SELECT TOP (20) o.OrderID, c.FirstName + ' ' + c.LastName AS Customer,
        p.ProductName, cat.CategoryName, oi.Quantity, oi.UnitPrice, oi.LineTotal
 FROM dbo.Orders o
 JOIN dbo.Customers c   ON c.CustomerID = o.CustomerID
@@ -155,7 +157,8 @@ WHERE c.CustomerID NOT IN (
 GO
 
 -- Q18 [CASE expression] Classify orders by size.
-SELECT OrderID, TotalAmount,
+-- TOP(20) — preview only, at 100k+ orders; drop it for the real report.
+SELECT TOP (20) OrderID, TotalAmount,
        CASE
            WHEN TotalAmount >= 10000 THEN 'Large'
            WHEN TotalAmount >= 2000  THEN 'Medium'
