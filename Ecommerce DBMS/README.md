@@ -21,7 +21,8 @@ ecommerce-dbms-project/
 │   ├── 08_functions.sql                 1 scalar + 1 table-valued function
 │   ├── 09_triggers.sql                  2 AFTER triggers (set-based, multi-row safe)
 │   ├── 10_transactions.sql              BEGIN TRAN / SAVE TRAN / ROLLBACK / COMMIT demos
-│   └── 11_reports.sql                   Reporting queries for screenshots
+│   ├── 11_reports.sql                   Reporting queries for screenshots
+│   └── 12_active_orders_queue.sql       Live "placed → delivered" order queue (table + 2 triggers + view)
 ├── scripts/
 │   └── rayso_link.py                    Turns any .sql file (or snippet) into a ray.so share URL
 └── .gitignore
@@ -35,7 +36,7 @@ Execute in numeric order, each file in its own query window (or concatenate), `G
 01_create_database.sql → 02_create_tables.sql → 03_indexes.sql → 04_sample_data.sql
 → [04b_bulk_data.sql — optional, adds ~100k more orders] →
 → 05_queries.sql → 06_views.sql → 07_procedures.sql → 08_functions.sql
-→ 09_triggers.sql → 10_transactions.sql → 11_reports.sql
+→ 09_triggers.sql → 10_transactions.sql → 11_reports.sql → 12_active_orders_queue.sql
 ```
 
 `04b_bulk_data.sql` is additive and idempotent (skips itself if already run) — run it or
