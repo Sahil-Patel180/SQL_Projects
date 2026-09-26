@@ -18,6 +18,8 @@
 | TC12 | View | `SELECT * FROM vw_OrderSummary WHERE OrderID = 3` | Cancelled order shows `NULL` `PaymentMethod`/`ShipmentStatus` (no payment/shipment ever created) |
 | TC13 | Bulk data idempotency | Run `04b_bulk_data.sql` twice in a row | Second run prints "Bulk data already present — skipping." and row counts don't change |
 | TC14 | Bulk data integrity | After `04b_bulk_data.sql`, run `SELECT COUNT(*) FROM OrderItems oi LEFT JOIN Orders o ON o.OrderID=oi.OrderID WHERE o.OrderID IS NULL` | Returns 0 — every generated line item points at a real order (same check for ProductID) |
+| TC15 | Live queue — add | `INSERT` a new `Orders` row with status `Pending` | Row instantly appears in `ActiveOrders` / `vw_ActiveOrdersQueue` |
+| TC16 | Live queue — remove | `UPDATE` that order's `OrderStatus` to `Delivered` | Row instantly disappears from `ActiveOrders`, but stays in `Orders` (history preserved) |
 
 ## Screenshot Evidence Plan
 For each numbered script (`01` → `11`), capture in SSMS:
@@ -49,10 +51,10 @@ Generate more with: `python3 scripts/rayso_link.py <file> [start_line end_line]`
 - [x] Complex JOINs → Q8, Q9, Q10
 - [x] Subqueries (incl. correlated) → Q12, Q13
 - [x] Aggregate functions → Q11, Q20, reports
-- [x] 2 Views → `sql/06_views.sql`
+- [x] 2 Views → `sql/06_views.sql` (+ 1 bonus: `vw_ActiveOrdersQueue` in `sql/12_active_orders_queue.sql`)
 - [x] 2 Stored Procedures → `sql/07_procedures.sql`
 - [x] 2 Functions (scalar + TVF) → `sql/08_functions.sql`
-- [x] 2 Triggers → `sql/09_triggers.sql`
+- [x] 2 Triggers → `sql/09_triggers.sql` (+ 2 bonus: real-time active-order queue in `sql/12_active_orders_queue.sql`)
 - [x] BEGIN TRANSACTION / COMMIT / ROLLBACK / SAVE TRANSACTION → `sql/10_transactions.sql`
 - [x] 1+ Index → 4 in `sql/03_indexes.sql`
 - [x] Meaningful reports → 8 in `sql/11_reports.sql`
