@@ -129,7 +129,7 @@ CREATE TABLE silver.results (
     fastest_lap_rank        SMALLINT        NULL,
     fastest_lap_ms          INT             NULL,
     fastest_lap_speed_kph   DECIMAL(7,3)    NULL,
-    status_id               INT             NOT NULL,
+    status_id               INT             NULL,   -- NULL when the source has no status yet
     dwh_create_date         DATETIME2(0)    NOT NULL DEFAULT SYSDATETIME()
 );
 GO
@@ -152,7 +152,7 @@ CREATE TABLE silver.sprint_results (
     fastest_lap             SMALLINT        NULL,
     fastest_lap_rank        SMALLINT        NULL,
     fastest_lap_ms          INT             NULL,
-    status_id               INT             NOT NULL,
+    status_id               INT             NULL,   -- e.g. 2026 withdrawals arrive with '\N'
     dwh_create_date         DATETIME2(0)    NOT NULL DEFAULT SYSDATETIME(),
     CONSTRAINT uq_silver_sprint_race_driver UNIQUE (race_id, driver_id)
 );

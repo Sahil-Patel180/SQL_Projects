@@ -73,7 +73,7 @@ FROM (
         WHERE NOT EXISTS (SELECT 1 FROM gold.dim_constructor d WHERE d.constructor_id = f.constructor_id)
     UNION ALL
     SELECT N'fact_results -> dim_status', COUNT_BIG(*) FROM gold.fact_results f
-        WHERE NOT EXISTS (SELECT 1 FROM gold.dim_status d WHERE d.status_id = f.status_id)
+        WHERE f.status_id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM gold.dim_status d WHERE d.status_id = f.status_id)
     UNION ALL
     SELECT N'dim_race -> dim_circuit', COUNT_BIG(*) FROM gold.dim_race r
         WHERE NOT EXISTS (SELECT 1 FROM gold.dim_circuit c WHERE c.circuit_id = r.circuit_id)

@@ -123,13 +123,13 @@ FROM (
         WHERE NOT EXISTS (SELECT 1 FROM silver.constructors c WHERE c.constructor_id = x.constructor_id)
     UNION ALL
     SELECT N'results.status_id', COUNT_BIG(*) FROM silver.results x
-        WHERE NOT EXISTS (SELECT 1 FROM silver.status s WHERE s.status_id = x.status_id)
+        WHERE x.status_id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM silver.status s WHERE s.status_id = x.status_id)
     UNION ALL
     SELECT N'sprint_results.race_id', COUNT_BIG(*) FROM silver.sprint_results x
         WHERE NOT EXISTS (SELECT 1 FROM silver.races r WHERE r.race_id = x.race_id)
     UNION ALL
     SELECT N'sprint_results.status_id', COUNT_BIG(*) FROM silver.sprint_results x
-        WHERE NOT EXISTS (SELECT 1 FROM silver.status s WHERE s.status_id = x.status_id)
+        WHERE x.status_id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM silver.status s WHERE s.status_id = x.status_id)
     UNION ALL
     SELECT N'qualifying.race_id+driver_id', COUNT_BIG(*) FROM silver.qualifying x
         WHERE NOT EXISTS (SELECT 1 FROM silver.races r WHERE r.race_id = x.race_id)
