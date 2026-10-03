@@ -1,0 +1,16 @@
+# source data is downloaded, not committed
+datasets/**/*.csv
+datasets/**/*.zip
+
+# SQL Server files
+*.bak
+*.mdf
+*.ldf
+*.log
+
+# editors / OS
+.vs/
+*.suo
+Thumbs.db
+.DS_Store
+~$*
