@@ -18,7 +18,7 @@ Conventions:
 ===============================================================================
 */
 
-USE F1_DB;
+USE F1_DB2;
 GO
 
 IF OBJECT_ID(N'silver.circuits', N'U') IS NOT NULL DROP TABLE silver.circuits;
