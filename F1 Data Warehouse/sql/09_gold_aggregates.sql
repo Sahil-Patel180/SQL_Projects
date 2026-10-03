@@ -16,7 +16,7 @@ gold.vw_f1_master
 ===============================================================================
 */
 
-USE F1_DB;
+USE F1_DB2;
 GO
 
 CREATE OR ALTER VIEW gold.agg_driver_season AS
