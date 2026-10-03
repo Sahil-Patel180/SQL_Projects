@@ -23,7 +23,7 @@ CREATE TABLE #checks (
 
 ---------------------------------------------------------------------------- 1. no rows lost bronze -> silver
 INSERT INTO #checks
-SELECT N'rows bronze = silver: ' + b.t, s.n - b.n, N'0 difference', CASE WHEN s.n = b.n THEN 1 ELSE 0 END
+SELECT N'rows bronze (distinct keys) = silver: ' + b.t, s.n - b.n, N'0 difference', CASE WHEN s.n = b.n THEN 1 ELSE 0 END
 FROM (VALUES
         (N'circuits',              (SELECT COUNT_BIG(*) FROM bronze.circuits)),
         (N'constructors',          (SELECT COUNT_BIG(*) FROM bronze.constructors)),
@@ -34,8 +34,8 @@ FROM (VALUES
         (N'results',               (SELECT COUNT_BIG(*) FROM bronze.results)),
         (N'sprint_results',        (SELECT COUNT_BIG(*) FROM bronze.sprint_results)),
         (N'qualifying',            (SELECT COUNT_BIG(*) FROM bronze.qualifying)),
-        (N'lap_times',             (SELECT COUNT_BIG(*) FROM bronze.lap_times)),
-        (N'pit_stops',             (SELECT COUNT_BIG(*) FROM bronze.pit_stops)),
+        (N'lap_times',             (SELECT COUNT_BIG(*) FROM (SELECT DISTINCT raceId, driverId, lap FROM bronze.lap_times) d)),  -- duplicates dropped on purpose
+        (N'pit_stops',             (SELECT COUNT_BIG(*) FROM (SELECT DISTINCT raceId, driverId, [stop] FROM bronze.pit_stops) d)),  -- duplicates dropped on purpose
         (N'driver_standings',      (SELECT COUNT_BIG(*) FROM bronze.driver_standings)),
         (N'constructor_standings', (SELECT COUNT_BIG(*) FROM bronze.constructor_standings)),
         (N'constructor_results',   (SELECT COUNT_BIG(*) FROM bronze.constructor_results))
