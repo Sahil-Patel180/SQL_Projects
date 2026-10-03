@@ -20,7 +20,7 @@ Views:
 ===============================================================================
 */
 
-USE F1_DB;
+USE F1_DB2;
 GO
 
 CREATE OR ALTER VIEW gold.dim_driver AS
