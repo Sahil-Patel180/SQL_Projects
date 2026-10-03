@@ -25,7 +25,7 @@ Rules (each fixes a bug in the earlier flat "f1_master" attempt):
 ===============================================================================
 */
 
-USE F1_DB;
+USE F1_DB2;
 GO
 
 CREATE OR ALTER VIEW gold.fact_results AS
