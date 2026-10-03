@@ -19,7 +19,7 @@ dbo.fn_time_to_ms(@value)
 ===============================================================================
 */
 
-USE F1_DB;
+USE F1_DB2;
 GO
 
 CREATE OR ALTER FUNCTION dbo.fn_clean (@value NVARCHAR(4000))
