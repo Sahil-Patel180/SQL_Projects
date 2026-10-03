@@ -14,6 +14,16 @@ This repository contains the following projects:
 * **Description:** This project involves a series of SQL queries written for the `AdventureWorksDW2022` database. The AdventureWorks database is a sample data warehouse from Microsoft, designed to demonstrate data warehousing and business intelligence solutions.
 * **Focus:** The queries in this project likely analyze sales, products, customers, and other business performance metrics to answer key questions and identify trends.
 
+### 2. E-Commerce Order Management System
+
+* **Folder:** [Ecommerce DBMS](Ecommerce%20DBMS)
+* **Description:** A normalized order-management database in T-SQL: tables, indexes, views, stored procedures, functions, triggers and transactions, with sample and bulk data.
+
+### 3. F1 Data Warehouse
+
+* **Folder:** [F1 Data Warehouse](F1%20Data%20Warehouse)
+* **Description:** A bronze / silver / gold data warehouse for every Formula 1 race since 1950, loaded from CSV with `BULK INSERT`, modelled as a star schema for Power BI, with leakage-safe ML feature views and automated quality checks.
+
 ## Technologies Used
 
 * **SQL:** The primary language used across all projects.
