@@ -27,7 +27,7 @@ Usage:
 ===============================================================================
 */
 
-USE F1_DB;
+USE F1_DB2;
 GO
 
 CREATE OR ALTER PROCEDURE bronze.load_bronze
