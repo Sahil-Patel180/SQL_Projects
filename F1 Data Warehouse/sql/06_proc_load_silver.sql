@@ -29,6 +29,7 @@ BEGIN
 
     DECLARE @table_name     SYSNAME,
             @rows           INT,
+            @dropped        INT,
             @started_at     DATETIME2(3),
             @batch_start    DATETIME2(3) = SYSDATETIME();
 
@@ -255,38 +256,65 @@ BEGIN
 
         ------------------------------------------------------------------ lap_times
         -- milliseconds is already given, so the 'm:ss.fff' text column is not kept.
+        -- Newer source snapshots contain a few repeated (race, driver, lap) rows:
+        -- one row per key is kept (the faster time) and the number dropped is printed.
         SET @table_name = N'lap_times'; SET @started_at = SYSDATETIME();
         TRUNCATE TABLE silver.lap_times;
+        WITH typed AS (
+            SELECT
+                TRY_CAST(dbo.fn_clean(raceId) AS INT)          AS race_id,
+                TRY_CAST(dbo.fn_clean(driverId) AS INT)        AS driver_id,
+                TRY_CAST(dbo.fn_clean(lap) AS SMALLINT)        AS lap,
+                TRY_CAST(dbo.fn_clean(position) AS SMALLINT)   AS position,
+                TRY_CAST(dbo.fn_clean(milliseconds) AS INT)    AS lap_time_ms
+            FROM bronze.lap_times
+        ),
+        ranked AS (
+            SELECT *, ROW_NUMBER() OVER (PARTITION BY race_id, driver_id, lap
+                                         ORDER BY lap_time_ms, position) AS rn
+            FROM typed
+        )
         INSERT INTO silver.lap_times (race_id, driver_id, lap, position, lap_time_ms)
-        SELECT
-            TRY_CAST(dbo.fn_clean(raceId) AS INT),
-            TRY_CAST(dbo.fn_clean(driverId) AS INT),
-            TRY_CAST(dbo.fn_clean(lap) AS SMALLINT),
-            TRY_CAST(dbo.fn_clean(position) AS SMALLINT),
-            TRY_CAST(dbo.fn_clean(milliseconds) AS INT)
-        FROM bronze.lap_times;
+        SELECT race_id, driver_id, lap, position, lap_time_ms
+        FROM ranked
+        WHERE rn = 1;
         SET @rows = @@ROWCOUNT;
         INSERT INTO meta.load_log (run_id, layer, table_name, rows_loaded, started_at, finished_at, status)
         VALUES (@run_id, 'silver', @table_name, @rows, @started_at, SYSDATETIME(), 'success');
-        PRINT '>> silver.' + @table_name + ': ' + CAST(@rows AS VARCHAR(12)) + ' rows';
+        SELECT @dropped = COUNT(*) - @rows FROM bronze.lap_times;
+        PRINT '>> silver.' + @table_name + ': ' + CAST(@rows AS VARCHAR(12)) + ' rows ('
+              + CAST(@dropped AS VARCHAR(12)) + ' duplicate rows dropped)';
 
         ------------------------------------------------------------------ pit_stops
         -- duration text ('1:09.764' for long stops) is dropped; milliseconds is the truth.
+        -- Same duplicate guard as lap_times: one row per (race, driver, stop).
         SET @table_name = N'pit_stops'; SET @started_at = SYSDATETIME();
         TRUNCATE TABLE silver.pit_stops;
+        WITH typed AS (
+            SELECT
+                TRY_CAST(dbo.fn_clean(raceId) AS INT)          AS race_id,
+                TRY_CAST(dbo.fn_clean(driverId) AS INT)        AS driver_id,
+                TRY_CAST(dbo.fn_clean([stop]) AS SMALLINT)     AS stop_number,
+                TRY_CAST(dbo.fn_clean(lap) AS SMALLINT)        AS lap,
+                TRY_CAST(dbo.fn_clean([time]) AS TIME(0))      AS local_time,
+                TRY_CAST(dbo.fn_clean(milliseconds) AS INT)    AS duration_ms
+            FROM bronze.pit_stops
+        ),
+        ranked AS (
+            SELECT *, ROW_NUMBER() OVER (PARTITION BY race_id, driver_id, stop_number
+                                         ORDER BY lap, duration_ms) AS rn
+            FROM typed
+        )
         INSERT INTO silver.pit_stops (race_id, driver_id, stop_number, lap, local_time, duration_ms)
-        SELECT
-            TRY_CAST(dbo.fn_clean(raceId) AS INT),
-            TRY_CAST(dbo.fn_clean(driverId) AS INT),
-            TRY_CAST(dbo.fn_clean([stop]) AS SMALLINT),
-            TRY_CAST(dbo.fn_clean(lap) AS SMALLINT),
-            TRY_CAST(dbo.fn_clean([time]) AS TIME(0)),
-            TRY_CAST(dbo.fn_clean(milliseconds) AS INT)
-        FROM bronze.pit_stops;
+        SELECT race_id, driver_id, stop_number, lap, local_time, duration_ms
+        FROM ranked
+        WHERE rn = 1;
         SET @rows = @@ROWCOUNT;
         INSERT INTO meta.load_log (run_id, layer, table_name, rows_loaded, started_at, finished_at, status)
         VALUES (@run_id, 'silver', @table_name, @rows, @started_at, SYSDATETIME(), 'success');
-        PRINT '>> silver.' + @table_name + ': ' + CAST(@rows AS VARCHAR(12)) + ' rows';
+        SELECT @dropped = COUNT(*) - @rows FROM bronze.pit_stops;
+        PRINT '>> silver.' + @table_name + ': ' + CAST(@rows AS VARCHAR(12)) + ' rows ('
+              + CAST(@dropped AS VARCHAR(12)) + ' duplicate rows dropped)';
 
         ------------------------------------------------------------------ driver_standings
         SET @table_name = N'driver_standings'; SET @started_at = SYSDATETIME();
