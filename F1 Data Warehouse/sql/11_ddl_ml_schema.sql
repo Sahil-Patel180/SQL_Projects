@@ -15,7 +15,7 @@ Purpose:
 ===============================================================================
 */
 
-USE F1_DB;
+USE F1_DB2;
 GO
 
 IF OBJECT_ID(N'ml.narratives',  N'U') IS NOT NULL DROP TABLE ml.narratives;
