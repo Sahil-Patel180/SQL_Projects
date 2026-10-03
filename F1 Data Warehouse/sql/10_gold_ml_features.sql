@@ -20,7 +20,7 @@ gold.ml_pit_features           pit-stop count and average stop time (2010+)
 ===============================================================================
 */
 
-USE F1_DB;
+USE F1_DB2;
 GO
 
 CREATE OR ALTER VIEW gold.ml_driver_race_features AS
