@@ -13,7 +13,7 @@ Useful query:
 ===============================================================================
 */
 
-USE F1_DB;
+USE F1_DB2;
 GO
 
 IF OBJECT_ID(N'meta.load_log', N'U') IS NOT NULL
