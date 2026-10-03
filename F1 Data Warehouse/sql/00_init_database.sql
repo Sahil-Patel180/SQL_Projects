@@ -3,7 +3,7 @@
 00 - Create Database and Schemas
 ===============================================================================
 Purpose:
-    Creates the F1_DB database and its five schemas:
+    Creates the F1_DB2 database and its five schemas:
         bronze  raw CSV data, loaded as text exactly as delivered
         silver  cleaned, typed, keyed tables
         gold    star-schema views for reporting + ML feature views
@@ -11,7 +11,7 @@ Purpose:
         meta    pipeline run log
 
 WARNING:
-    If F1_DB already exists it is DROPPED and recreated. All data in it is lost.
+    If F1_DB2 already exists it is DROPPED and recreated. All data in it is lost.
     Back it up first if you need anything from it.
 
 Run:
@@ -22,17 +22,10 @@ Run:
 USE master;
 GO
 
-IF DB_ID(N'F1_DB') IS NOT NULL
-BEGIN
-    ALTER DATABASE F1_DB SET SINGLE_USER WITH ROLLBACK IMMEDIATE;
-    DROP DATABASE F1_DB;
-END;
+CREATE DATABASE F1_DB2;
 GO
 
-CREATE DATABASE F1_DB;
-GO
-
-USE F1_DB;
+USE F1_DB2;
 GO
 
 CREATE SCHEMA bronze;
