@@ -16,7 +16,7 @@ Design:
 ===============================================================================
 */
 
-USE F1_DB;
+USE F1_DB2;
 GO
 
 IF OBJECT_ID(N'bronze.circuits', N'U') IS NOT NULL DROP TABLE bronze.circuits;
