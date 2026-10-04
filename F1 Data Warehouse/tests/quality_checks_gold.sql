@@ -14,7 +14,7 @@ counted only a driver's best results, so the sums legitimately differ.)
 ===============================================================================
 */
 
-USE F1_DB;
+USE F1_DB2;
 GO
 
 DROP TABLE IF EXISTS #checks;
