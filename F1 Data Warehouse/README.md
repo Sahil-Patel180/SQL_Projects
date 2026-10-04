@@ -62,7 +62,7 @@ F1 Data Warehouse/
 │   ├── data_catalog.md            every gold column explained
 │   └── naming_conventions.md
 ├── sql/
-│   ├── 00_init_database.sql       F1_DB + schemas (drops an existing F1_DB!)
+│   ├── 00_init_database.sql       F1_DB2 + schemas (drops an existing F1_DB2!)
 │   ├── 01_meta_load_log.sql       run log table
 │   ├── 02_ddl_bronze.sql          14 raw tables
 │   ├── 03_proc_load_bronze.sql    bronze.load_bronze  (BULK INSERT, UTF-8)
@@ -105,6 +105,18 @@ EXEC meta.run_pipeline @source_path = N'C:\f1_data\raw\';
 | `Incorrect syntax near 'FORMAT'` | SQL Server 2016 or older. | Upgrade to 2017+ (Express 2019/2022 is free). |
 | Names like `RÃ¤ikkÃ¶nen` | CSV re-saved in another encoding. | Use the original Kaggle files (UTF-8). |
 | A load step fails | Details are in the log. | `SELECT TOP (20) * FROM meta.load_log ORDER BY log_id DESC;` |
+
+## Results
+
+Pipeline run (rows loaded per table, latest champions):
+
+![Pipeline run](images/12_run_pipeline.png)
+
+Quality checks:
+
+| Bronze | Silver |
+| --- | --- |
+| ![Bronze checks](images/test_quality_bronze.png) | ![Silver checks](images/test_quality_silver.png) |
 
 ## Design decisions
 

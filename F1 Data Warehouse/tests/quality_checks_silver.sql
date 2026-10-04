@@ -13,8 +13,8 @@ what keys cannot: lost rows, failed type conversions, orphan references.
 USE F1_DB2;
 GO
 
-DROP TABLE IF EXISTS #checks;
-CREATE TABLE #checks (
+DROP TABLE IF EXISTS #silver_checks;
+CREATE TABLE #silver_checks (
     check_name  NVARCHAR(200),
     actual      BIGINT,
     expected    NVARCHAR(50),
@@ -22,7 +22,7 @@ CREATE TABLE #checks (
 );
 
 ---------------------------------------------------------------------------- 1. no rows lost bronze -> silver
-INSERT INTO #checks
+INSERT INTO #silver_checks
 SELECT N'rows bronze (distinct keys) = silver: ' + b.t, s.n - b.n, N'0 difference', CASE WHEN s.n = b.n THEN 1 ELSE 0 END
 FROM (VALUES
         (N'circuits',              (SELECT COUNT_BIG(*) FROM bronze.circuits)),
@@ -61,7 +61,7 @@ JOIN (VALUES
 ---------------------------------------------------------------------------- 2. no value lost in type conversion
 -- A source value that was present ('\N' excluded) but became NULL in silver
 -- means TRY_CAST could not parse it.
-INSERT INTO #checks
+INSERT INTO #silver_checks
 SELECT N'type conversion: ' + c.col, c.lost, N'0', CASE WHEN c.lost = 0 THEN 1 ELSE 0 END
 FROM (
     SELECT N'results.grid', COUNT_BIG(*) FROM bronze.results b JOIN silver.results s ON s.result_id = CAST(b.resultId AS INT)
@@ -98,13 +98,13 @@ FROM (
 ---------------------------------------------------------------------------- 3. parsed times agree with the source
 -- lap_times has both a text time and milliseconds in the source: the parser
 -- must reproduce the source milliseconds exactly.
-INSERT INTO #checks
+INSERT INTO #silver_checks
 SELECT N'fn_time_to_ms matches source ms (lap_times)', COUNT_BIG(*), N'0', CASE WHEN COUNT_BIG(*) = 0 THEN 1 ELSE 0 END
 FROM bronze.lap_times
 WHERE dbo.fn_time_to_ms([time]) <> TRY_CAST(dbo.fn_clean(milliseconds) AS INT);
 
 ---------------------------------------------------------------------------- 4. orphan references
-INSERT INTO #checks
+INSERT INTO #silver_checks
 SELECT N'orphans: ' + o.rel, o.n, N'0', CASE WHEN o.n = 0 THEN 1 ELSE 0 END
 FROM (
     SELECT N'races.circuit_id', COUNT_BIG(*) FROM silver.races x
@@ -153,7 +153,7 @@ FROM (
 ) AS o(rel, n);
 
 ---------------------------------------------------------------------------- 5. value sanity
-INSERT INTO #checks
+INSERT INTO #silver_checks
 SELECT N'sanity: ' + v.rule_name, v.n, N'0', CASE WHEN v.n = 0 THEN 1 ELSE 0 END
 FROM (
     SELECT N'no ''\N'' left in text columns', COUNT_BIG(*) FROM silver.results
@@ -175,7 +175,7 @@ FROM (
 ) AS v(rule_name, n);
 
 ---------------------------------------------------------------------------- 6. accents survived
-INSERT INTO #checks
+INSERT INTO #silver_checks
 -- Raikkonen with a-umlaut and o-umlaut, built with NCHAR so the script's own file encoding cannot break it
 SELECT N'Raikkonen spelled with umlauts', COUNT_BIG(*), N'1', CASE WHEN COUNT_BIG(*) = 1 THEN 1 ELSE 0 END
 FROM silver.drivers
@@ -186,5 +186,5 @@ SELECT
     actual,
     expected,
     CASE WHEN passed = 1 THEN 'PASS' ELSE 'FAIL' END AS status
-FROM #checks
+FROM #silver_checks
 ORDER BY passed, check_name;

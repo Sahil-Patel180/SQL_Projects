@@ -17,8 +17,8 @@ counted only a driver's best results, so the sums legitimately differ.)
 USE F1_DB2;
 GO
 
-DROP TABLE IF EXISTS #checks;
-CREATE TABLE #checks (
+DROP TABLE IF EXISTS #gold_checks;
+CREATE TABLE #gold_checks (
     check_name  NVARCHAR(200),
     actual      BIGINT,
     expected    NVARCHAR(50),
@@ -26,7 +26,7 @@ CREATE TABLE #checks (
 );
 
 ---------------------------------------------------------------------------- 1. dimension keys unique
-INSERT INTO #checks
+INSERT INTO #gold_checks
 SELECT N'unique key: ' + k.dim, k.dupes, N'0', CASE WHEN k.dupes = 0 THEN 'PASS' ELSE 'FAIL' END
 FROM (
     SELECT N'dim_driver.driver_id', COUNT_BIG(*) - COUNT_BIG(DISTINCT driver_id) FROM gold.dim_driver
@@ -43,24 +43,24 @@ FROM (
 ) AS k(dim, dupes);
 
 ---------------------------------------------------------------------------- 2. no rows lost or duplicated
-INSERT INTO #checks
+INSERT INTO #gold_checks
 SELECT N'fact_results Race rows = silver.results',
        (SELECT COUNT_BIG(*) FROM gold.fact_results WHERE session_type = N'Race')
      - (SELECT COUNT_BIG(*) FROM silver.results),
        N'0 difference', NULL;
-INSERT INTO #checks
+INSERT INTO #gold_checks
 SELECT N'fact_results Sprint rows = silver.sprint_results',
        (SELECT COUNT_BIG(*) FROM gold.fact_results WHERE session_type = N'Sprint')
      - (SELECT COUNT_BIG(*) FROM silver.sprint_results),
        N'0 difference', NULL;
-INSERT INTO #checks
+INSERT INTO #gold_checks
 SELECT N'fact_pit_stops rows = silver.pit_stops',
        (SELECT COUNT_BIG(*) FROM gold.fact_pit_stops) - (SELECT COUNT_BIG(*) FROM silver.pit_stops),
        N'0 difference', NULL;
-UPDATE #checks SET result = CASE WHEN actual = 0 THEN 'PASS' ELSE 'FAIL' END WHERE result IS NULL;
+UPDATE #gold_checks SET result = CASE WHEN actual = 0 THEN 'PASS' ELSE 'FAIL' END WHERE result IS NULL;
 
 ---------------------------------------------------------------------------- 3. every fact key finds its dimension
-INSERT INTO #checks
+INSERT INTO #gold_checks
 SELECT N'unmatched key: ' + m.rel, m.n, N'0', CASE WHEN m.n = 0 THEN 'PASS' ELSE 'FAIL' END
 FROM (
     SELECT N'fact_results -> dim_race', COUNT_BIG(*) FROM gold.fact_results f
@@ -87,7 +87,7 @@ FROM (
 
 ---------------------------------------------------------------------------- 4. business rules
 -- 4a. every completed race has a winner
-INSERT INTO #checks
+INSERT INTO #gold_checks
 SELECT N'completed races without a winner', COUNT_BIG(*), N'0',
        CASE WHEN COUNT_BIG(*) = 0 THEN 'PASS' ELSE 'FAIL' END
 FROM gold.dim_race r
@@ -96,7 +96,7 @@ WHERE r.is_completed = 1
                   WHERE f.race_id = r.race_id AND f.session_type = N'Race' AND f.is_win = 1);
 
 -- 4b. exactly one champion per completed season
-INSERT INTO #checks
+INSERT INTO #gold_checks
 SELECT N'completed seasons without exactly one champion', COUNT_BIG(*), N'0',
        CASE WHEN COUNT_BIG(*) = 0 THEN 'PASS' ELSE 'FAIL' END
 FROM (
@@ -115,7 +115,7 @@ WITH summed AS (
     WHERE r.season_year >= 2010
     GROUP BY r.season_year, f.driver_id
 )
-INSERT INTO #checks
+INSERT INTO #gold_checks
 SELECT N'driver points = final standings (2010+)', COUNT_BIG(*), N'0',
        CASE WHEN COUNT_BIG(*) = 0 THEN 'PASS' ELSE 'FAIL' END
 FROM gold.fact_driver_standings s
@@ -135,7 +135,7 @@ WITH summed AS (
     WHERE r.season_year >= 2010
     GROUP BY r.season_year, f.constructor_id
 )
-INSERT INTO #checks
+INSERT INTO #gold_checks
 SELECT N'constructor points = final standings (2010+, excl. 2 known penalties)', COUNT_BIG(*), N'0',
        CASE WHEN COUNT_BIG(*) = 0 THEN 'PASS' ELSE 'FAIL' END
 FROM gold.fact_constructor_standings s
@@ -147,7 +147,7 @@ WHERE s.is_final_round = 1
   AND NOT (s.season_year = 2020 AND s.constructor_id = 211);
 
 -- 4e. flags are consistent
-INSERT INTO #checks
+INSERT INTO #gold_checks
 SELECT N'flag conflicts (win but not podium, DNF but classified, ...)', COUNT_BIG(*), N'0',
        CASE WHEN COUNT_BIG(*) = 0 THEN 'PASS' ELSE 'FAIL' END
 FROM gold.fact_results
@@ -159,7 +159,7 @@ WHERE (is_win = 1 AND is_podium = 0)
 ---------------------------------------------------------------------------- 5. ML features: no leakage
 -- Recompute driver_points_last5 for one season from scratch, using only races
 -- strictly before each race. Any difference means the window leaks.
-INSERT INTO #checks
+INSERT INTO #gold_checks
 SELECT N'ml leakage spot check: driver_points_last5 (2023)', COUNT_BIG(*), N'0',
        CASE WHEN COUNT_BIG(*) = 0 THEN 'PASS' ELSE 'FAIL' END
 FROM gold.ml_driver_race_features AS m
@@ -177,7 +177,7 @@ WHERE m.season_year = 2023
             ORDER BY r.race_date DESC
         ) AS prev), -1);
 
-INSERT INTO #checks
+INSERT INTO #gold_checks
 SELECT N'ml features: first career start has no history', COUNT_BIG(*), N'0',
        CASE WHEN COUNT_BIG(*) = 0 THEN 'PASS' ELSE 'FAIL' END
 FROM gold.ml_driver_race_features
@@ -185,7 +185,7 @@ WHERE driver_career_starts_before = 0
   AND (driver_points_last5 IS NOT NULL OR driver_avg_finish_last5 IS NOT NULL);
 
 ---------------------------------------------------------------------------- 6. freshness (WARN only)
-INSERT INTO #checks
+INSERT INTO #gold_checks
 SELECT N'past races still without results (re-download data?)', COUNT_BIG(*), N'0',
        CASE WHEN COUNT_BIG(*) = 0 THEN 'PASS' ELSE 'WARN' END
 FROM gold.dim_race
@@ -193,5 +193,5 @@ WHERE is_completed = 0
   AND race_date < CAST(GETDATE() AS DATE);
 
 SELECT check_name, actual, expected, result
-FROM #checks
+FROM #gold_checks
 ORDER BY CASE result WHEN 'FAIL' THEN 0 WHEN 'WARN' THEN 1 ELSE 2 END, check_name;
