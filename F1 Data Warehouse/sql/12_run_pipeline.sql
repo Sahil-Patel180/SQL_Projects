@@ -12,10 +12,10 @@ the CSVs are refreshed: bronze and silver reload, gold views update at once.
 ===============================================================================
 */
 
-USE F1_DB;
+USE F1_DB2;
 GO
 
-DECLARE @source_path NVARCHAR(400) = N'C:\f1_data\raw\';   -- <-- change me
+DECLARE @source_path NVARCHAR(400) = N'E:\08062025\Projects\New folder\f1_new\archive\';   -- <-- change me
 
 EXEC meta.run_pipeline @source_path = @source_path;
 GO
