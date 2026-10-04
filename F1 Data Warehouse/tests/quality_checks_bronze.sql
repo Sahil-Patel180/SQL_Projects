@@ -30,11 +30,14 @@ INSERT INTO #bronze_checks
 SELECT N'bronze table count', COUNT(*), N'14', CASE WHEN COUNT(*) = 14 THEN 1 ELSE 0 END
 FROM sys.tables WHERE SCHEMA_NAME(schema_id) = N'bronze';
 
--- 3. UTF-8 decoded correctly (UTF-8 read as ANSI shows up as 'Ã' + another character)
+-- 3. UTF-8 decoded correctly (UTF-8 read as ANSI shows up as 'Ã' + another character).
+--    BIN2 collation: the default case-insensitive collation would also match a
+--    real lowercase 'ã' (São Paulo, Portimão) and report a false failure.
 INSERT INTO #bronze_checks
 SELECT N'no garbled accents in drivers (mojibake)', COUNT(*), N'0', CASE WHEN COUNT(*) = 0 THEN 1 ELSE 0 END
 FROM bronze.drivers
-WHERE forename LIKE N'%' + NCHAR(195) + N'%' OR surname LIKE N'%' + NCHAR(195) + N'%';
+WHERE forename COLLATE Latin1_General_BIN2 LIKE N'%' + NCHAR(195) + N'%'
+   OR surname  COLLATE Latin1_General_BIN2 LIKE N'%' + NCHAR(195) + N'%';
 
 INSERT INTO #bronze_checks
 -- Raikkonen with a-umlaut and o-umlaut, built with NCHAR so the script's own file encoding cannot break it
@@ -45,7 +48,8 @@ WHERE driverRef = N'raikkonen' AND surname = N'R' + NCHAR(228) + N'ikk' + NCHAR(
 INSERT INTO #bronze_checks
 SELECT N'no garbled accents in circuits (mojibake)', COUNT(*), N'0', CASE WHEN COUNT(*) = 0 THEN 1 ELSE 0 END
 FROM bronze.circuits
-WHERE [name] LIKE N'%' + NCHAR(195) + N'%' OR [location] LIKE N'%' + NCHAR(195) + N'%';
+WHERE [name]     COLLATE Latin1_General_BIN2 LIKE N'%' + NCHAR(195) + N'%'
+   OR [location] COLLATE Latin1_General_BIN2 LIKE N'%' + NCHAR(195) + N'%';
 
 -- 4. CSV quoting handled (no leftover quote characters)
 INSERT INTO #bronze_checks

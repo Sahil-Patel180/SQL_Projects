@@ -99,9 +99,13 @@ FROM (
 -- lap_times has both a text time and milliseconds in the source: the parser
 -- must reproduce the source milliseconds exactly.
 INSERT INTO #silver_checks
-SELECT N'fn_time_to_ms matches source ms (lap_times)', COUNT_BIG(*), N'0', CASE WHEN COUNT_BIG(*) = 0 THEN 1 ELSE 0 END
+-- The source rounds a few hundred laps differently in its two columns (always
+-- off by exactly 1 ms, e.g. '2:08.081' vs 128080), so 1 ms is tolerated.
+-- More than that, or a time the parser cannot read, is a parser bug.
+SELECT N'fn_time_to_ms matches source ms (lap_times, +/-1 ms)', COUNT_BIG(*), N'0', CASE WHEN COUNT_BIG(*) = 0 THEN 1 ELSE 0 END
 FROM bronze.lap_times
-WHERE dbo.fn_time_to_ms([time]) <> TRY_CAST(dbo.fn_clean(milliseconds) AS INT);
+WHERE ABS(dbo.fn_time_to_ms([time]) - TRY_CAST(dbo.fn_clean(milliseconds) AS INT)) > 1
+   OR (dbo.fn_time_to_ms([time]) IS NULL AND dbo.fn_clean([time]) IS NOT NULL);
 
 ---------------------------------------------------------------------------- 4. orphan references
 INSERT INTO #silver_checks
