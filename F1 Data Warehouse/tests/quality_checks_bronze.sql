@@ -7,7 +7,7 @@ Returns one row per check. Every row should show PASS.
 ===============================================================================
 */
 
-USE F1_DB;
+USE F1_DB2;
 GO
 
 DROP TABLE IF EXISTS #checks;
