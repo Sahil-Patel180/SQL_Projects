@@ -22,7 +22,7 @@ flowchart LR
 | **silver** | 14 tables | Cleaned, typed, snake_case, times in milliseconds, primary keys |
 | **gold** | 6 dimensions, 7 facts, 2 aggregate / flat views | Star schema for reporting |
 | **gold.ml_\*** | 2 feature views | One row per driver per race, only pre-race information |
-| **ml** | 3 tables | Empty; the Python ML / LLM project writes predictions and narratives here |
+| **ml** | 3 tables | Filled by [f1-analytics-ml](https://github.com/Sahil-Patel180/f1-analytics-ml): model runs, predictions and fact-checked LLM narratives (every driver-season and race, 1950 on) |
 | **meta** | `load_log` + `run_pipeline` | Every load logged: rows, duration, status, error |
 
 ## Gold star schema
@@ -139,8 +139,8 @@ Quality checks:
 
 ## Related projects
 
-- **Power BI report** on this warehouse: `Power_BI_Projects` repository (coming).
-- **Python ML + local LLM narratives** reading `gold.ml_*` and writing to `ml.*`: separate repository (coming).
+- **Power BI report** on this warehouse: [Power_BI_Projects / F1 Race Analytics](https://github.com/Sahil-Patel180/Power_BI_Projects/tree/main/F1%20Race%20Analytics): 8 pages from season overview to predictions vs actual, imported from the gold views and the `ml` schema.
+- **Python ML + local LLM narratives** reading `gold.ml_*` and writing to `ml.*`: [f1-analytics-ml](https://github.com/Sahil-Patel180/f1-analytics-ml): 6 models tested against baselines, plus race recaps and season summaries written by a local model and checked against the warehouse.
 
 ## Credits
 
